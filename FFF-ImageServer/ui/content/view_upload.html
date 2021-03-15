@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<body>
+<header id="newbarheader">
+	<nav id="newbarvar">
+		<a href="{{ @BASE }}" class="navbar-brand"><img src="img/logo3.png" alt="" width=130px height=90px></a>
+		<div>
+			<i class="lni-menu"></i>
+
+			<ul id="inner">
+				<li>
+					<a class="nav-link" href="{{ @BASE }}/selectcanvas">CANVAS</a>
+				</li>
+				<li>
+					<a class="nav-link" href="{{ @BASE }}/view_upload">MAP</a>
+				</li>
+				<li>
+					<a class="nav-link" href="#">COMMUNITY</a>
+				</li>
+			</ul>
+
+
+	</nav>
+	<!-- Navbar End -->
+</header>
+
+<div class="mapthings">
+<div class="navigation" id="unnamed">
+
+	<!-- hidden search box -->
+	<div id="myOverlay" class="overlay">
+		<span class="closebtn" onclick="closeSearch()" title="Close Overlay"><img src="img/back.png"></span>
+				<div class= "overlay-content">
+					<form method="post">
+						<input type="text" name="search" id="search" class="form-control"
+							   autocomplete="off" placeholder="Search by Title...">
+					</form>
+					<div>
+						<div class="result">
+							<div class="row showresult">
+							</div>
+						</div>
+					</div>
+				</div>
+	</div>
+
+	<input id="openBtn" type="image" onclick="openSearch()" src="img/search.png">
+
+    <div class="header">
+        <!--View Ajax -->
+		<div id="current">
+		</div>
+
+	</div>
+        <!-- Upload Graffito -->
+<div id="upload">
+        <div class="text-center">
+            <h3>Share your Artwork!</h3>
+        </div>
+        <form name="upload" method="POST" action="{{ @BASE }}/upload" enctype="multipart/form-data" id="uploadPicture">
+            <label for="file-upload" class="select-file-upload">
+    <i class="fa fa-cloud-upload"></i> Select your Graffito
+            </label>
+			<input id="file-upload" name="picfile" type="file"/>
+			<input type="hidden" id="lat" value="" name="lat">
+			<input type="hidden" id="lng" value="" name="lng">
+			<input type="hidden" id="position" value="" name="position">
+            <div class="textarea">
+                <textarea id="picDescription" name="picDescription" placeholder="Share your idea.." cols="82" rows="7" ></textarea>
+            </div>
+        </form>
+        <button type="button" class="btn btn-dark" onclick = "uploadForm()">Upload</button>
+	
+	<div class="box2">
+			<h3>Happening right here.</h3>
+ <div class="container">
+  <!-- Columns are always 50% wide, on mobile and desktop -->
+  <div class="row">
+    <div class="col-3">
+		<div class="team-img">
+                <img class="img-fluid" src="img/example.jpg">
+              </div>
+	  </div>
+	 <div class="box box-navigation2">
+				<span class="accent-black2">Created by Nov 19, 2020, active</span>
+				</div>
+                   </div>
+	           </div>
+			</div>
+
+		</div>
+   </div>
+
+
+<div id="map"></div>
+</div>
+
+<script type="text/javascript">
+    //toggle menu
+    function toggleMenu(){
+        let navigation = document.querySelector('.navigation');
+        let toggle = document.querySelector('.toggle');
+        navigation.classList.toggle('active');
+        toggle.classList.toggle('active');
+    }
+    function uploadForm(){
+        let form = document.getElementById("uploadPicture");
+        console.log(position)
+        document.getElementById("lat").value=position.split(",")[0].split("(")[1]
+        document.getElementById("lng").value=position.split(",")[1].split(")")[0]
+        document.getElementById("position").value=position;
+        console.log(document.getElementById("position").value)
+        //add location
+        form.submit();
+    }
+</script>
+
+
+<!-- JS for Ajax -->
+
+<!-- Include the jQuery library -->
+<!--    <script src="{{@BASE}}/ui/jq/jquery-3.2.1.min.js"></script>-->
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+
+<script>
+    var imageData;              // we will store the image data here, once we have it
+    var currentIndex;      // index of the current image being viewed
+    var baseURL = "{{ @BASE }}";		// Fat-Free Framework application base token
+
+    function getImages(index) {
+        $.ajax({
+            type: "GET",
+            url: "infoservice",
+            success: function (response) {
+                console.log("AJAX response:", response);    // JSON string of data
+                imageData = JSON.parse(response);
+                console.log("parsed response:", imageData);    // javascript array of data
+                currentIndex = index;
+                setImage();
+            },
+            failure: function () {
+                console.log("AJAX error!");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        getImages();           // will start viewing at zero-th image
+    })
+    ;
+    function setImage() {       // set the image in the "current" div to be the one with the currentIndex
+        var imhtml;
+
+        imhtml = `<div class="team-img2">`+
+				`<img class="img-fluid" src='image/${imageData[currentIndex].picID}'/>`+
+				`</div>`+
+				`<div class="box box-navigation">`+`<span class="accent-black">Name : ${imageData[currentIndex].picname}</span><br>`+
+				`<div class="box"><h2>Created by<span class="accent2"> DWD Codes Girls</span></h2></div>`+
+				`</div>`;
+        console.log("current image html:", imhtml);
+        $("#current").html(imhtml);      // set inner HTML of images div
+        $("#impos").html(`${parseInt(currentIndex) + 1}/${imageData.length}`);                // indicates position in series
+        var trackhtml = "";
+        for (var n = 0; n < imageData.length; n++) {
+            var sty = `style="${((n == currentIndex) ? 'color:#FF0000;' : 'cursor:pointer;')}"`;
+            trackhtml += `<span id="t${n}" ${sty} onclick="imJump(this)"> &bull; </span>`;
+        }
+        console.log("trackhtml:", trackhtml);
+        $("#imtrack").html(trackhtml);
+    }
+
+</script>
+
+<script>
+    var imageData;
+    // use ajax to get image data
+    $.ajax({
+        type: "GET",
+        url: "infoservice",
+        success: function (response) {
+            console.log("AJAX response:", response);    // JSON string of data
+            imageData = JSON.parse(response);
+            console.log("parsed response:", imageData);    // javascript array of data
+            initMap();
+        },
+        failure: function () {
+            console.log("AJAX error!");
+        }
+    });
+    function initMap() {
+        // Map options
+        var options = {
+            zoom: 13,
+            center: {lat: 55.94993557334834, lng: -3.1782864610749004}
+        }
+        // New map
+        map = new google.maps.Map(document.getElementById('map'), options);
+        // Listen for click on map
+        google.maps.event.addListener(map, 'click', function (event) {
+            // Add marker
+            addMarker({coords: event.latLng})
+            // upload div
+            document.getElementById("upload").style.display = "block";
+            document.getElementById("current").style.display = "none";
+
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: "",
+            size: new google.maps.Size(50, 50)
+        });
+
+        //make marker
+        let markers = [];
+        for (let i = 0; i < imageData.length; i++) {
+            let picID = imageData[i].picID;
+            let picName = imageData[i].picname;
+            let picIndex = i;
+            let content = '<img src="thumb/ID">'+ '<h3>Name</h3>' + '<h3>Index</h3>';
+            content = content.replace(/ID/gi,picID);
+            content = content.replace(/Name/gi,picName);
+            content = content.replace(/Index/gi,picIndex);
+            console.log(parseFloat(imageData[i].lat))
+            markers.push({
+                coords: {lat: parseFloat(imageData[i].lat), lng: parseFloat(imageData[i].lng)},
+                content: content
+            },);
+        }
+
+        //Loop through markers
+        for (var i = 0; i < markers.length; i++) {
+            // Add marker
+            addMarker(markers[i]);
+        }
+    }
+    // Add Marker Function
+    function addMarker(props){
+        var marker = new google.maps.Marker({
+            position:props.coords,
+            map:map
+            //icon:props.iconImage
+        });
+        position = marker.getPosition().toString();
+
+        // Check for customicon
+        if(props.iconImage){
+            // Set icon image
+            marker.setIcon(props.iconImage);
+        }
+
+        // Check content
+        if(props.content){
+            marker.addListener('click', function(){
+                var rawIndexNumber;
+                var indexNumber;
+                rawIndexNumber = props.content.split("h3>")[3]
+                indexNumber = parseInt(rawIndexNumber)
+                currentIndex = indexNumber
+                setImage();
+                document.getElementById("current").style.display = "block";
+                document.getElementById("upload").style.display = "none";
+            });
+
+        }
+    }
+
+	// search box
+		$(document).ready(function(){
+			//check if cdn works
+			//alert("done");
+			$("#search").keyup(function(){
+				var text = $("#search").val();
+				$.ajax({
+					url:"{{ @BASE }}/php/search.php",
+					method:"POST",
+					data:{text:text},
+					success:function (data){
+						$(".showresult").html(data);
+					}
+				})
+			})
+		})
+
+	// Full Screen Search Box
+	function openSearch() {
+		document.getElementById("myOverlay").style.display = "block";
+	}
+
+	function closeSearch() {
+		document.getElementById("myOverlay").style.display = "none";
+	}
+
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDA3ZjEyXjxbaZKFnPFX1BMHtDd3fmqZEY&callback=initMap&language=EN">
+</script>
+
+</body>
